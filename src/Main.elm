@@ -72,7 +72,7 @@ view (w, h) model =
 
     squares = List.map (Square.view squaresMailbox.address) model.squares
   in
-    Collage.collage w h ([debug] ++ squares)
+    Collage.collage w h (debug :: squares)
 
 
 -- PORTS & SIGNALS

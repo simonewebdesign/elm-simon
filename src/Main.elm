@@ -16,8 +16,8 @@ import Square
 type alias Model =
   { level : Int
   , score : Int
-  , sequence : Array Color
-  , inputSequence : Array Color
+  , sequence : Array Int
+  , inputSequence : Array Int
   , state : GameState
   , squares : List Square.Model
   }
@@ -25,7 +25,7 @@ type alias Model =
 type alias Dimensions = (Int, Int)
 type alias Position = (Int, Int)
 
-type Action = NoOp | ChangeGameState
+type Action = NoOp | ChangeGameState | InputSequence Int
 
 type GameState = Play | Pause
 
@@ -58,6 +58,9 @@ update action model =
       case model.state of
         Play  -> { model | state = Pause }
         Pause -> { model | state = Play }
+
+    InputSequence id ->
+      { model | inputSequence = Array.push id model.inputSequence }
 
 
 -- VIEW
@@ -112,5 +115,7 @@ input =
       else
         NoOp
     ) Keyboard.space
+
+    squarePresses = Signal.map InputSequence squaresMailbox.signal
   in
-    Signal.mergeMany [space]
+    Signal.mergeMany [space, squarePresses]

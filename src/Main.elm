@@ -3,8 +3,8 @@ module Main where
 import Array exposing (Array)
 import Graphics.Element as Element exposing (Element)
 import Graphics.Collage as Collage
-import Color exposing (Color, red, yellow, green, blue)
-
+import Color exposing (Color, red, yellow, green, blue, white)
+import Text
 import Keyboard
 import Window
 
@@ -25,9 +25,9 @@ type alias Model =
 type alias Dimensions = (Int, Int)
 type alias Position = (Int, Int)
 
-type Action = NoOp | ChangeGameState | InputSequence Int
+type Action = NoOp | StartGame | InputSequence Int
 
-type GameState = Play | Pause
+type GameState = Started | Over
 
 
 initialModel : Model
@@ -36,7 +36,7 @@ initialModel =
   , score = 0
   , sequence = Array.empty
   , inputSequence = Array.empty
-  , state = Pause
+  , state = Over
   , squares =
     [ { id = 1, isActive = False, position = (-200, 160),  color = red }
     , { id = 2, isActive = False, position = (200, 160),   color = yellow }
@@ -54,13 +54,13 @@ update action model =
     NoOp ->
       model
 
-    ChangeGameState ->
+    StartGame ->
       case model.state of
-        Play  -> { model | state = Pause }
-        Pause -> { model | state = Play }
+        Started -> model
+        Over -> { model | state = Started }
 
     InputSequence id ->
-      if model.state == Play then
+      if model.state == Started then
         { model | inputSequence = Array.push id model.inputSequence }
       else
         model
@@ -72,9 +72,21 @@ view (w, h) model =
   let
     debug = Element.show model |> Collage.toForm |> Collage.moveY 100
 
+    overlay =
+      Text.fromString "Game Over\nPress spacebar to start"
+      |> Text.color white
+      |> Element.centered
+      |> Collage.toForm
+
     squares = List.map (Square.view squaresMailbox.address) model.squares
   in
-    Collage.collage w h (debug :: squares)
+    Collage.collage w h <|
+      debug ::
+        if model.state == Over then
+          [overlay]
+        else
+          squares
+
 
 
 -- PORTS & SIGNALS
@@ -108,12 +120,11 @@ input =
 
     --arrows = Signal.sampleOn delta (Signal.map toAction x)
 
-
     --clicks = Signal.map (always Add) Mouse.clicks
 
     space = Signal.map (\pressed ->
       if pressed then
-        ChangeGameState
+        StartGame
       else
         NoOp
     ) Keyboard.space

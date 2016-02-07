@@ -60,8 +60,10 @@ update action model =
         Pause -> { model | state = Play }
 
     InputSequence id ->
-      { model | inputSequence = Array.push id model.inputSequence }
-
+      if model.state == Play then
+        { model | inputSequence = Array.push id model.inputSequence }
+      else
+        model
 
 -- VIEW
 
